@@ -1,0 +1,32 @@
+name: Publish Website to Web Hosting
+on:
+  push:
+    branches:
+      - master
+jobs:
+  web-deploy:
+    name: Auto Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Latest Code
+        uses: actions/checkout@v3
+        
+      - name: Syncronize File
+        uses: burnett01/rsync-deployments@4.1
+        with:
+          switches: -avuzr --exclude=".git" --exclude=".github"
+          path: /
+          remote_path: ${{ secrets.DEPLOY_PATH_PRODUCTION }}
+          remote_host: ${{ secrets.SSH_SERVER }}
+          remote_user: ${{ secrets.SSH_USERNAME }}
+          remote_key:  ${{ secrets.SSH_PASSWORD }}
+          remote_port: ${{ secrets.SSH_PORT }}
+
+      - name: SSH Command
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_SERVER }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          script: cd ${{ secrets.DEPLOY_PATH_PRODUCTION }} && ls -lah
